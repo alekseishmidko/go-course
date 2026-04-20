@@ -22,3 +22,17 @@ env-cleanup:
 	else \
 		echo "Очистка отменена"; \
 	fi
+
+seq ?= init
+
+migration-create:
+	@if [ -z "$(seq)" ]; then \
+		echo "Отсутствует seq"; \
+		exit 1; \
+	fi
+	$(COMPOSE) run --rm todoapp-postgres-migrations \
+		create \
+		-ext sql \
+		-dir /migrations \
+		-seq \
+		"$(seq)"
