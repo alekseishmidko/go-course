@@ -36,3 +36,19 @@ migration-create:
 		-dir /migrations \
 		-seq \
 		"$(seq)"
+
+migrate-up:
+	make migrate-action action=up
+
+migrate-down:
+	make migrate-action action=down
+
+migrate-action:
+	@if [ -z "$(action)" ]; then \
+		echo "Отсутствует action"; \
+		exit 1; \
+	fi
+	${COMPOSE} run --rm todoapp-postgres-migrations \
+	 	-path /migrations \
+	 	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432:/${POSTGRES_DB}?sslmode=disable \
+	 	"$(action)"
