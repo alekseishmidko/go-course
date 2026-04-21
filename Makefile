@@ -5,7 +5,8 @@ export PROJECT_ROOT=$(shell pwd)
 COMPOSE=docker compose
 
 .PHONY: env-up env-down env-cleanup
-
+todoapp-run:
+	go run cmd/todoapp/main.go
 env-up:
 	$(COMPOSE) up -d todoapp-postgres
 
