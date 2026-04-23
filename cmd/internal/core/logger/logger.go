@@ -1,6 +1,7 @@
 package core_logger
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,15 @@ type Logger struct {
 	*zap.Logger
 
 	file *os.File
+}
+
+func FromContext(ctx context.Context) *Logger {
+	log, ok := ctx.Value("log").(*Logger)
+	if !ok {
+		panic("logger not found in context")
+	}
+
+	return log
 }
 
 func NewLogger(config LoggerConfig) (*Logger, error) {
@@ -49,5 +59,12 @@ func NewLogger(config LoggerConfig) (*Logger, error) {
 func (l *Logger) Close(msg string, fields ...zap.Field) {
 	if err := l.file.Close(); err != nil {
 		fmt.Println("close log file:", err)
+	}
+}
+
+func (l *Logger) With(field ...zap.Field) *Logger {
+	return &Logger{
+		Logger: l.Logger.With(field...),
+		file:   l.file,
 	}
 }
