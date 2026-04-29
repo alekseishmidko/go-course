@@ -56,7 +56,7 @@ func NewLogger(config LoggerConfig) (*Logger, error) {
 	return &Logger{Logger: zapLogger, file: logFile}, nil
 }
 
-func (l *Logger) Close(msg string, fields ...zap.Field) {
+func (l *Logger) Close() {
 	if err := l.file.Close(); err != nil {
 		fmt.Println("close log file:", err)
 	}

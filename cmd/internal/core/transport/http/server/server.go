@@ -73,3 +73,14 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 	return nil
 
 }
+
+func NewConfigMust() Config {
+
+	config, err := NewConfig()
+
+	if err != nil {
+		err = fmt.Errorf("Get Http.Config: %w", err)
+		panic(err)
+	}
+	return config
+}
