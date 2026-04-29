@@ -13,7 +13,7 @@ type LoggerConfig struct {
 
 func NewConfig() (LoggerConfig, error) {
 	var config LoggerConfig
-	if err := envconfig.Process("LOGGER_", &config); err != nil {
+	if err := envconfig.Process("LOGGER", &config); err != nil {
 
 		return LoggerConfig{}, fmt.Errorf("envconfig.Process: %w", err)
 	}
