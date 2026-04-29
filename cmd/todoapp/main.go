@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/alekseishmidko/go-course/cmd/internal/core/logger"
+	core_http_middlewares "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/middlewares"
 	core_http_server "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/server"
 	users_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/users/transport/http"
 	"go.uber.org/zap"
@@ -33,7 +34,12 @@ func main() {
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegisterRoutes(userRoutes...)
 
-	httpServer := core_http_server.NewHTTPServer(core_http_server.NewConfigMust(), logger)
+	httpServer := core_http_server.NewHTTPServer(
+		core_http_server.NewConfigMust(),
+		logger, core_http_middlewares.RequestID(),
+		core_http_middlewares.Logger(logger),
+		core_http_middlewares.Panic(),
+		core_http_middlewares.Trace())
 
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 
