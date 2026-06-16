@@ -1,0 +1,37 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+
+### Create user
+POST {{api}}/users
+Content-Type: application/json
+
+{
+  "full_name": "Alex Shmidko",
+  "phone_number": "+79991234567"
+}
+
+### Create user without phone number
+POST {{api}}/users
+Content-Type: application/json
+
+{
+  "full_name": "Alex Shmidko"
+}
+
+### Create user - validation error: full_name is too short
+POST {{api}}/users
+Content-Type: application/json
+
+{
+  "full_name": "Al",
+  "phone_number": "+79991234567"
+}
+
+### Create user - validation error: phone_number must start with +
+POST {{api}}/users
+Content-Type: application/json
+
+{
+  "full_name": "Alex Shmidko",
+  "phone_number": "79991234567"
+}
