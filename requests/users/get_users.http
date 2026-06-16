@@ -1,0 +1,22 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+
+### Get users
+GET {{api}}/users
+Accept: application/json
+
+### Get users with limit
+GET {{api}}/users?limit=10
+Accept: application/json
+
+### Get users with limit and offset
+GET {{api}}/users?limit=10&offset=0
+Accept: application/json
+
+### Get users - validation error: negative limit
+GET {{api}}/users?limit=-1&offset=0
+Accept: application/json
+
+### Get users - validation error: negative offset
+GET {{api}}/users?limit=10&offset=-1
+Accept: application/json

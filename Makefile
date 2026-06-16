@@ -4,13 +4,28 @@ export
 export PROJECT_ROOT=$(shell pwd)
 COMPOSE=docker compose
 
-.PHONY: env-up env-down env-cleanup
-todoapp-run:
+.PHONY: dev run wait-db env-up env-down env-cleanup
+dev: env-up wait-db migrate-up run
+
+run: wait-db
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	export POSTGRES_PORT=${POSTGRES_EXTERNAL_PORT} && \
 	go mod tidy && \
 	go run cmd/todoapp/main.go
+
+.PHONY: fmt
+fmt:
+	gofmt -w .
+
 env-up:
-	$(COMPOSE) up -d todoapp-postgres
+	$(COMPOSE) up -d todoapp-postgres port-forwarder
+
+wait-db: env-up
+	@until $(COMPOSE) exec -T todoapp-postgres pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" >/dev/null 2>&1; do \
+		echo "Waiting for postgres..."; \
+		sleep 1; \
+	done
 
 
 env-down:
@@ -19,7 +34,7 @@ env-down:
 env-cleanup:
 	@read -p "очистить volumes? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		$(COMPOSE) down && \
+		$(COMPOSE) down todoapp-postgres port-forwarder && \
 		rm -rf out/pgdata && \
 		echo "Удалено"; \
 	else \
@@ -40,7 +55,7 @@ migration-create:
 		-seq \
 		"$(seq)"
 
-migrate-up:
+migrate-up: wait-db
 	make migrate-action action=up
 
 migrate-down:
@@ -53,7 +68,7 @@ migrate-action:
 	fi
 	${COMPOSE} run --rm todoapp-postgres-migrations \
 	 	-path /migrations \
-	 	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432:/${POSTGRES_DB}?sslmode=disable \
+	 	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 	 	"$(action)"
 
 env-port-forward:

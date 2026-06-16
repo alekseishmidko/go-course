@@ -44,7 +44,7 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 	go func() {
 		defer close(ch)
 
-		h.log.Warn("start HTTP server", zap.String("addr", h.config.Addr))
+		h.log.Warn("start HTTP server http://localhost:5082", zap.String("addr", h.config.Addr))
 
 		err := server.ListenAndServe()
 
