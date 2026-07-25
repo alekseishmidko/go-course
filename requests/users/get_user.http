@@ -1,0 +1,15 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@user_id = 1
+
+### Get user by id
+GET {{api}}/users/{{user_id}}
+Accept: application/json
+
+### Get user by id - not found
+GET {{api}}/users/999999
+Accept: application/json
+
+### Get user by id - validation error: id must be integer
+GET {{api}}/users/abc
+Accept: application/json
