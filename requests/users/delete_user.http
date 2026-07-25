@@ -1,0 +1,15 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@user_id = 2
+
+### Delete user by id
+DELETE {{api}}/users/{{user_id}}
+Accept: application/json
+
+### Delete user by id - not found
+DELETE {{api}}/users/999999
+Accept: application/json
+
+### Delete user by id - validation error: id must be integer
+DELETE {{api}}/users/abc
+Accept: application/json
