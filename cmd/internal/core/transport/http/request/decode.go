@@ -16,9 +16,23 @@ func DecodeAndValidateRequest(r *http.Request, dest any) error {
 		return fmt.Errorf("decode json: %v: %w", err, core_errors.ErrInvalidArgument)
 	}
 
-	if err := requestValidator.Struct(dest); err != nil {
+	var (
+		err error
+	)
+	v, ok := dest.(validatable)
+	if ok {
+		err = v.Validate()
+	} else {
+		err = requestValidator.Struct(dest)
+	}
+
+	if err != nil {
 		return fmt.Errorf("request validation: %v: %w", err, core_errors.ErrInvalidArgument)
 	}
 
 	return nil
+}
+
+type validatable interface {
+	Validate() error
 }
