@@ -49,7 +49,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	response := PatchUserResponse(userDtoFromDomain(userDomain))
 
 	responseHandler.JSONResponse(response, http.StatusOK)
-	log.Debug(fmt.Sprintf("PatchUserRequest fields: '%s'\n FullName: \n PhoneNumber:'%s'", request.FullName, request.PhoneNumber))
+	log.Debug(fmt.Sprintf("PatchUserRequest fields: FullName: '%+v'\n PhoneNumber:'%+v'", request.FullName, request.PhoneNumber))
 
 	rw.WriteHeader(http.StatusOK)
 }
@@ -64,14 +64,15 @@ func (r *PatchUserRequest) Validate() error {
 			return fmt.Errorf("`FullName` must be within 3 and 100 symbols")
 		}
 
-		if r.PhoneNumber.Value != nil {
-			phoneNumberLen := len([]rune(*r.PhoneNumber.Value))
-			if phoneNumberLen < 10 || phoneNumberLen > 15 {
-				return fmt.Errorf("`PhoneNumber` must be between 10 and 15 symbols")
-			}
-			if !strings.HasPrefix(*r.PhoneNumber.Value, "+") {
-				return fmt.Errorf("PhoneNumber must starts with `+` symbol")
-			}
+	}
+
+	if r.PhoneNumber.Set && r.PhoneNumber.Value != nil {
+		phoneNumberLen := len([]rune(*r.PhoneNumber.Value))
+		if phoneNumberLen < 10 || phoneNumberLen > 15 {
+			return fmt.Errorf("`PhoneNumber` must be between 10 and 15 symbols")
+		}
+		if !strings.HasPrefix(*r.PhoneNumber.Value, "+") {
+			return fmt.Errorf("PhoneNumber must starts with `+` symbol")
 		}
 	}
 	return nil

@@ -86,7 +86,7 @@ func (u *User) ApplyPatch(patch UserPatch) error {
 	}
 
 	if patch.PhoneNumber.Set {
-		tmp.FullName = *patch.PhoneNumber.Value
+		tmp.PhoneNumber = patch.PhoneNumber.Value
 	}
 
 	if err := tmp.Validate(); err != nil {

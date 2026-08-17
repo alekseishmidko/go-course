@@ -1,0 +1,60 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@user_id = 1
+
+### Patch user full name
+PATCH {{api}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "full_name": "Alex Updated"
+}
+
+### Patch user phone number
+PATCH {{api}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "phone_number": "+79997654322"
+}
+
+### Patch user full name and phone number
+PATCH {{api}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "full_name": "Alex Updated",
+  "phone_number": "+79997654321"
+}
+
+### Patch user - clear phone number
+PATCH {{api}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "phone_number": null
+}
+
+### Patch user - not found
+PATCH {{api}}/users/999999
+Content-Type: application/json
+
+{
+  "full_name": "Alex Updated"
+}
+
+### Patch user - validation error: full_name is too short
+PATCH {{api}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "full_name": "Al"
+}
+
+### Patch user - validation error: id must be integer
+PATCH {{api}}/users/abc
+Content-Type: application/json
+
+{
+  "full_name": "Alex Updated"
+}
