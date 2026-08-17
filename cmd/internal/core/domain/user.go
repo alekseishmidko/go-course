@@ -38,12 +38,12 @@ func (u *User) Validate() error {
 	}
 
 	if u.PhoneNumber != nil {
-		phoneNumberLen := len([]rune(*u.PhoneNumber))
+		phoneNumberLength := len([]rune(*u.PhoneNumber))
 
-		if phoneNumberLen < 10 || phoneNumberLen > 15 {
+		if phoneNumberLength < 10 || phoneNumberLength > 15 {
 			return fmt.Errorf(
 				"invalid `PhoneNumber` len: %d: %w",
-				phoneNumberLen,
+				phoneNumberLength,
 				core_errors.ErrInvalidArgument,
 			)
 		}
@@ -86,7 +86,7 @@ func (u *User) ApplyPatch(patch UserPatch) error {
 	}
 
 	if patch.PhoneNumber.Set {
-		tmp.FullName = *patch.PhoneNumber.Value
+		tmp.PhoneNumber = patch.PhoneNumber.Value
 	}
 
 	if err := tmp.Validate(); err != nil {

@@ -10,7 +10,6 @@ import (
 	core_http_request "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/request"
 	core_http_response "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/response"
 	core_http_types "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/types"
-	core_http_utils "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/utils"
 )
 
 type PatchUserRequest struct {
@@ -25,7 +24,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
-	userId, err := core_http_utils.GetIntPathValue(r, "id")
+	userId, err := core_http_request.GetIntPathValue(r, "id")
 
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get user_id from path value")
@@ -49,7 +48,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	response := PatchUserResponse(userDtoFromDomain(userDomain))
 
 	responseHandler.JSONResponse(response, http.StatusOK)
-	log.Debug(fmt.Sprintf("PatchUserRequest fields: '%s'\n FullName: \n PhoneNumber:'%s'", request.FullName, request.PhoneNumber))
+	log.Debug(fmt.Sprintf("PatchUserRequest fields: FullName: '%+v'\n PhoneNumber:'%+v'", request.FullName, request.PhoneNumber))
 
 	rw.WriteHeader(http.StatusOK)
 }
@@ -64,14 +63,15 @@ func (r *PatchUserRequest) Validate() error {
 			return fmt.Errorf("`FullName` must be within 3 and 100 symbols")
 		}
 
-		if r.PhoneNumber.Value != nil {
-			phoneNumberLen := len([]rune(*r.PhoneNumber.Value))
-			if phoneNumberLen < 10 || phoneNumberLen > 15 {
-				return fmt.Errorf("`PhoneNumber` must be between 10 and 15 symbols")
-			}
-			if !strings.HasPrefix(*r.PhoneNumber.Value, "+") {
-				return fmt.Errorf("PhoneNumber must starts with `+` symbol")
-			}
+	}
+
+	if r.PhoneNumber.Set && r.PhoneNumber.Value != nil {
+		phoneNumberLen := len([]rune(*r.PhoneNumber.Value))
+		if phoneNumberLen < 10 || phoneNumberLen > 15 {
+			return fmt.Errorf("`PhoneNumber` must be between 10 and 15 symbols")
+		}
+		if !strings.HasPrefix(*r.PhoneNumber.Value, "+") {
+			return fmt.Errorf("PhoneNumber must starts with `+` symbol")
 		}
 	}
 	return nil

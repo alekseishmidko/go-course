@@ -39,6 +39,9 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodGet,
 			Path:    "/users",
 			Handler: h.GetUsers,
+			// Middleware: []core_http_middlewares.Middleware{
+			// core_http_middlewares.DummyMiddleware("заглушка"),
+			// },
 		},
 		{
 			Method:  http.MethodGet,

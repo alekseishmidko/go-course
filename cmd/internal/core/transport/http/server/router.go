@@ -3,6 +3,8 @@ package core_http_server
 import (
 	"fmt"
 	"net/http"
+
+	core_http_middlewares "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/middlewares"
 )
 
 type ApiVersion string
@@ -16,23 +18,25 @@ var (
 type APIVersionRouter struct {
 	*http.ServeMux
 	apiVersion ApiVersion
+	middleware []core_http_middlewares.Middleware
 }
 
 func NewAPIVersionRouter(
 	apiVersion ApiVersion,
+	middleware []core_http_middlewares.Middleware,
 ) *APIVersionRouter {
 	return &APIVersionRouter{
 		ServeMux:   http.NewServeMux(),
-		apiVersion: apiVersion,
+		apiVersion: apiVersion, middleware: middleware,
 	}
 }
-func (h *HTTPServer) RegisterAPIRouters(routers ...*APIVersionRouter) {
+func (s *HTTPServer) RegisterAPIRouters(routers ...*APIVersionRouter) {
 	for _, router := range routers {
 		prefix := "/api/" + string(router.apiVersion)
 
-		h.mux.Handle(
+		s.mux.Handle(
 			prefix+"/",
-			http.StripPrefix(prefix, router),
+			http.StripPrefix(prefix, router.WithMiddleware()),
 		)
 	}
 }
@@ -40,6 +44,10 @@ func (r *APIVersionRouter) RegisterRoutes(routes ...Route) {
 	for _, route := range routes {
 		pattern := fmt.Sprintf("%s %s", route.Method, route.Path)
 
-		r.Handle(pattern, route.Handler)
+		r.Handle(pattern, route.WithMiddleware())
 	}
+}
+
+func (r *APIVersionRouter) WithMiddleware() http.Handler {
+	return core_http_middlewares.ChainMiddleware(r, r.middleware...)
 }
