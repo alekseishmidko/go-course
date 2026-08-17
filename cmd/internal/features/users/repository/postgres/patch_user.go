@@ -47,5 +47,5 @@ func (r *UsersRepository) PatchUser(ctx context.Context, id int, user domain.Use
 		userModel.ID, userModel.Version, userModel.FullName, userModel.PhoneNumber,
 	)
 
-	return userDomain, nil
+	return userDomain, err
 }
