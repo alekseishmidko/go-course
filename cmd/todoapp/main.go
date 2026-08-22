@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/alekseishmidko/go-course/cmd/internal/core/logger"
-	core_postgres_pool "github.com/alekseishmidko/go-course/cmd/internal/core/repository/postgres/pool"
+	core_pgx_pool "github.com/alekseishmidko/go-course/cmd/internal/core/repository/postgres/pool/pgx"
 	core_http_middlewares "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/middlewares"
 	core_http_server "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/server"
 	users_postgres_repository "github.com/alekseishmidko/go-course/cmd/internal/features/users/repository/postgres"
@@ -32,9 +32,9 @@ func main() {
 	logger.Debug("Starting application")
 
 	logger.Debug("Initializing postgres connection pool")
-	pool, err := core_postgres_pool.NewConnectionPool(
+	pool, err := core_pgx_pool.NewPool(
 		ctx,
-		core_postgres_pool.NewConfigMust(),
+		core_pgx_pool.NewConfigMust(),
 	)
 
 	if err != nil {
@@ -52,13 +52,18 @@ func main() {
 		core_http_server.NewConfigMust(),
 		logger, core_http_middlewares.RequestID(),
 		core_http_middlewares.Logger(logger),
-		core_http_middlewares.Panic(),
-		core_http_middlewares.Trace())
+		core_http_middlewares.Trace(),
+		core_http_middlewares.Panic())
 
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes(usersTransportHttp.Routes()...)
+	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1, []core_http_middlewares.Middleware{})
+	apiVersionRouterV1.RegisterRoutes(usersTransportHttp.Routes()...)
 
-	httpServer.RegisterAPIRouters(apiVersionRouter)
+	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2, []core_http_middlewares.Middleware{
+	// 	core_http_middlewares.DummyMiddleware("v2"),
+	// })
+	// apiVersionRouterV2.RegisterRoutes(usersTransportHttp.Routes()...)
+
+	httpServer.RegisterAPIRouters(apiVersionRouterV1)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("Http server run Error", zap.Error(err))

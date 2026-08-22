@@ -1,4 +1,4 @@
-package core_http_utils
+package core_http_request
 
 import (
 	"fmt"
@@ -8,11 +8,10 @@ import (
 	core_errors "github.com/alekseishmidko/go-course/cmd/internal/core/error"
 )
 
-
 func GetIntQueryParam(r *http.Request, key string) (*int, error) {
-	param:= r.URL.Query().Get(key)
+	param := r.URL.Query().Get(key)
 	if param == "" {
-		return nil , nil
+		return nil, nil
 	}
 	val, err := strconv.Atoi(param)
 	if err != nil {

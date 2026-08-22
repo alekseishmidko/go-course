@@ -1,7 +1,6 @@
 package core_http_middlewares
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -38,7 +37,8 @@ func Logger(log *core_logger.Logger) Middleware {
 
 			newLogger := log.With(zap.String("request_id", requestID), zap.String("url", r.URL.String()))
 
-			ctx := context.WithValue(r.Context(), "log", newLogger)
+			ctx := core_logger.ToContext(r.Context(), newLogger)
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -79,7 +79,7 @@ func Trace() Middleware {
 
 			log.Debug(
 				"<<< done HTTP request",
-				zap.Int("status_code", rw.GetStatusCodeOrPanic()),
+				zap.Int("status_code", rw.GetStatusCode()),
 				zap.Duration("latency", time.Since(before)),
 			)
 		})
