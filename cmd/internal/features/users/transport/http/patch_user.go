@@ -77,7 +77,7 @@ func (r *PatchUserRequest) Validate() error {
 	return nil
 }
 func userPatchFromRequest(request PatchUserRequest) domain.UserPatch {
-	return domain.UserPatch{
-		FullName: request.FullName.ToDomain(), PhoneNumber: request.PhoneNumber.ToDomain(),
-	}
+
+	return domain.NewUserPatch(request.FullName.ToDomain(), request.PhoneNumber.ToDomain())
+
 }
