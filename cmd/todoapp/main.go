@@ -11,6 +11,9 @@ import (
 	core_pgx_pool "github.com/alekseishmidko/go-course/cmd/internal/core/repository/postgres/pool/pgx"
 	core_http_middlewares "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/middlewares"
 	core_http_server "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/server"
+	tasks_postgres_repository "github.com/alekseishmidko/go-course/cmd/internal/features/tasks/repository/postgres"
+	tasks_service "github.com/alekseishmidko/go-course/cmd/internal/features/tasks/service"
+	tasks_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/alekseishmidko/go-course/cmd/internal/features/users/repository/postgres"
 	users_service "github.com/alekseishmidko/go-course/cmd/internal/features/users/service"
 	users_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/users/transport/http"
@@ -43,10 +46,18 @@ func main() {
 
 	defer pool.Close()
 	// USERS
+
+	logger.Debug("initialize feature:", zap.String("feature", "users"))
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 	usersService := users_service.NewUsersService(usersRepository)
 	usersTransportHttp := users_transport_http.NewUsersHTTPHandler(usersService)
 
+	// TASKS
+	logger.Debug("initialize feature:", zap.String("feature", "tasks"))
+	tasksRepository := tasks_postgres_repository.NewTaskRepository(pool)
+	tasksService := tasks_service.NewTaskService(tasksRepository)
+	tasksTransportHttp := tasks_transport_http.NewTaskHttpHandler(tasksService)
+	//
 	logger.Debug("Initializing https server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -57,7 +68,7 @@ func main() {
 
 	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1, []core_http_middlewares.Middleware{})
 	apiVersionRouterV1.RegisterRoutes(usersTransportHttp.Routes()...)
-
+	apiVersionRouterV1.RegisterRoutes(tasksTransportHttp.Routes()...)
 	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2, []core_http_middlewares.Middleware{
 	// 	core_http_middlewares.DummyMiddleware("v2"),
 	// })
