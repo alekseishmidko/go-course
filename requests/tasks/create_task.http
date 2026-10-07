@@ -1,0 +1,76 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@author_user_id = 1
+
+### Create task
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Prepare course homework",
+  "description": "Complete and submit the HTTP module exercises",
+  "author_user_id": {{author_user_id}}
+}
+
+### Create task without description
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Read Go documentation",
+  "author_user_id": {{author_user_id}}
+}
+
+### Create task with null description
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Review pull request",
+  "description": null,
+  "author_user_id": {{author_user_id}}
+}
+
+### Create task - validation error: title is required
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": "Task without a title",
+  "author_user_id": {{author_user_id}}
+}
+
+### Create task - validation error: description must not be empty
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Task with empty description",
+  "description": "",
+  "author_user_id": {{author_user_id}}
+}
+
+### Create task - validation error: author_user_id is required
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Task without an author"
+}
+
+### Create task - author does not exist
+POST {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Task with unknown author",
+  "description": "The database should reject an unknown author",
+  "author_user_id": 999999
+}
