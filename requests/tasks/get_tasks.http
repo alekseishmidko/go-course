@@ -1,0 +1,80 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@user_id = 1
+@unknown_user_id = 999999
+
+# Before running: create a user and several tasks using create_user.http and create_task.http.
+# Set user_id to the author's ID; unknown_user_id must not belong to an existing author.
+# Expected statuses below describe the intended API behavior.
+
+### Get all tasks - 200, ordered by id ascending
+GET {{api}}/tasks
+Accept: application/json
+
+### Get tasks with limit - 200, at most two tasks
+GET {{api}}/tasks?limit=2
+Accept: application/json
+
+### Get tasks: first page - 200
+GET {{api}}/tasks?limit=2&offset=0
+Accept: application/json
+
+### Get tasks: second page - 200, skips the first two tasks
+GET {{api}}/tasks?limit=2&offset=2
+Accept: application/json
+
+### Get tasks with offset only - 200, skips the first task
+GET {{api}}/tasks?offset=1
+Accept: application/json
+
+### Get tasks by author - 200, only tasks belonging to user_id
+GET {{api}}/tasks?userId={{user_id}}
+Accept: application/json
+
+### Get tasks by author with pagination - 200, at most two matching tasks
+GET {{api}}/tasks?userId={{user_id}}&limit=2&offset=0
+Accept: application/json
+
+### Get tasks for unknown author - 200, empty result
+GET {{api}}/tasks?userId={{unknown_user_id}}
+Accept: application/json
+
+### Get tasks with zero limit - 200, empty result
+GET {{api}}/tasks?limit=0&offset=0
+Accept: application/json
+
+### Get tasks with offset beyond available rows - 200, empty result if fewer than 1000000 tasks exist
+GET {{api}}/tasks?limit=2&offset=1000000
+Accept: application/json
+
+### Get tasks with empty parameters - 200, treated as omitted parameters
+GET {{api}}/tasks?userId=&limit=&offset=
+Accept: application/json
+
+### Get tasks - 400: negative limit
+GET {{api}}/tasks?limit=-1
+Accept: application/json
+
+### Get tasks - 400: negative offset
+GET {{api}}/tasks?offset=-1
+Accept: application/json
+
+### Get tasks - 400: limit is not an integer
+GET {{api}}/tasks?limit=abc
+Accept: application/json
+
+### Get tasks - 400: offset is not an integer
+GET {{api}}/tasks?offset=abc
+Accept: application/json
+
+### Get tasks - 400: userId is not an integer
+GET {{api}}/tasks?userId=abc
+Accept: application/json
+
+### Get tasks - 400: fractional limit
+GET {{api}}/tasks?limit=1.5
+Accept: application/json
+
+### Get tasks - 400: integer overflow
+GET {{api}}/tasks?limit=999999999999999999999999999999
+Accept: application/json
