@@ -1,0 +1,124 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@task_id = 1
+@task_without_description_id = 2
+@completed_task_id = 3
+@unknown_task_id = 999999
+
+# Подготовка: создай задачи через create_task.http и подставь ID из ответов.
+# task_id: задача с description; task_without_description_id: description = null.
+# completed_task_id: существующая завершённая задача (подготовить отдельно в БД,
+# поскольку HTTP API завершения задач пока отсутствует).
+# unknown_task_id должен отсутствовать в БД.
+# Статусы ниже соответствуют текущей реализации; ошибки БД могут дать 500.
+
+### Существующая задача — 200, объект с id = task_id и всеми полями TaskDtoResponse
+GET {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Задача без описания — 200, description = null
+GET {{api}}/tasks/{{task_without_description_id}}
+Accept: application/json
+
+### Незавершённая задача — 200, completed = false, completed_at = null (сразу после создания)
+GET {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Завершённая задача — 200, completed = true, completed_at содержит дату
+GET {{api}}/tasks/{{completed_task_id}}
+Accept: application/json
+
+### Несуществующая задача — 404, JSON с message и error
+GET {{api}}/tasks/{{unknown_task_id}}
+Accept: application/json
+
+### Нулевой ID — 404, если в БД нет задачи с id = 0 (валидации положительного ID пока нет)
+GET {{api}}/tasks/0
+Accept: application/json
+
+### Отрицательный ID — 404, если в БД нет задачи с id = -1
+GET {{api}}/tasks/-1
+Accept: application/json
+
+### ID с ведущими нулями — 200, та же задача (нули не меняют числовой ID)
+GET {{api}}/tasks/00{{task_id}}
+Accept: application/json
+
+### Буквы вместо ID — 400, JSON с message и error
+GET {{api}}/tasks/abc
+Accept: application/json
+
+### Смешанный ID — 400
+GET {{api}}/tasks/12abc
+Accept: application/json
+
+### Дробный ID — 400
+GET {{api}}/tasks/1.5
+Accept: application/json
+
+### Экспоненциальная запись ID — 400
+GET {{api}}/tasks/1e3
+Accept: application/json
+
+### null вместо ID — 400
+GET {{api}}/tasks/null
+Accept: application/json
+
+### Пробел вместо ID — 400
+GET {{api}}/tasks/%20
+Accept: application/json
+
+### Переполнение положительного int — 400
+GET {{api}}/tasks/999999999999999999999999999999
+Accept: application/json
+
+### Переполнение отрицательного int — 400
+GET {{api}}/tasks/-999999999999999999999999999999
+Accept: application/json
+
+### Query-параметры не подменяют ID из пути — 200, id = task_id
+GET {{api}}/tasks/{{task_id}}?taskId={{unknown_task_id}}&userId=999999&limit=0
+Accept: application/json
+
+### Без заголовка Accept — 200, тот же JSON-объект
+GET {{api}}/tasks/{{task_id}}
+
+### Без ID — 200, маршрут списка задач, а не GetTask
+GET {{api}}/tasks
+Accept: application/json
+
+### Пустой сегмент ID — 404 от маршрутизатора
+GET {{api}}/tasks/
+Accept: application/json
+
+### Лишний сегмент пути — 404 от маршрутизатора
+GET {{api}}/tasks/{{task_id}}/extra
+Accept: application/json
+
+### Завершающий слеш после ID — 404 от маршрутизатора
+GET {{api}}/tasks/{{task_id}}/
+Accept: application/json
+
+### HEAD поддерживается Go ServeMux для GET — 200, без тела ответа
+HEAD {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### POST для отдельной задачи не поддерживается — 405, Allow содержит GET и HEAD
+POST {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### PUT для отдельной задачи не поддерживается — 405
+PUT {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### PATCH для отдельной задачи не поддерживается — 405
+PATCH {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### DELETE для отдельной задачи не поддерживается — 405
+DELETE {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### OPTIONS для отдельной задачи не поддерживается — 405
+OPTIONS {{api}}/tasks/{{task_id}}
+Accept: application/json

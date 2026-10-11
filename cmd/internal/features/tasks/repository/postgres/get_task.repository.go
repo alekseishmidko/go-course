@@ -2,12 +2,15 @@ package tasks_postgres_repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/alekseishmidko/go-course/cmd/internal/core/domain"
+	core_errors "github.com/alekseishmidko/go-course/cmd/internal/core/error"
+	core_postgres_pool "github.com/alekseishmidko/go-course/cmd/internal/core/repository/postgres/pool"
 )
 
-func (r *TasksRepository) GetTasks(ctx context.Context, userId *int, limit *int, offset *int) ([]domain.Task, error) {
+func (r *TasksRepository) GetTask(ctx context.Context, taskId *int) (domain.Task, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -15,56 +18,39 @@ func (r *TasksRepository) GetTasks(ctx context.Context, userId *int, limit *int,
 	query := `
 	SELECT id, version, title, description, completed, created_at, completed_at, author_user_id
 	FROM todoapp.tasks
-	%s
-	ORDER BY id ASC
-	LIMIT $1
-	OFFSET $2 `
+	WHERE id=$1;`
 
-	args := []any{limit, offset}
+	row := r.pool.QueryRow(ctx, query, taskId)
 
-	if userId != nil {
-		query = fmt.Sprintf(query, `WHERE author_user_id=$3`)
-		args = append(args, userId)
-	} else {
-		query = fmt.Sprintf(query, "")
-	}
+	var taskModel TaskModel
 
-	rows, err := r.pool.Query(ctx, query, args...)
+	err := row.Scan(
+		&taskModel.ID,
+		&taskModel.Version,
+		&taskModel.Title,
+		&taskModel.Description,
+		&taskModel.Completed,
+		&taskModel.CreatedAt,
+		&taskModel.CompletedAt,
+		&taskModel.AuthorUserId,
+	)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to select tasks :%w", err)
-	}
-
-	defer rows.Close()
-
-	var tasksModels []TaskModel
-
-	for rows.Next() {
-		var taskModel TaskModel
-		err := rows.Scan(
-			&taskModel.ID,
-			&taskModel.Version,
-			&taskModel.Title,
-			&taskModel.Description,
-			&taskModel.Completed,
-			&taskModel.CreatedAt,
-			&taskModel.CompletedAt,
-			&taskModel.AuthorUserId,
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("scan tasks: %w", err)
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
+			return domain.Task{}, fmt.Errorf("task with id='%d': '%w'", taskId, core_errors.ErrNotFound)
 		}
 
-		tasksModels = append(tasksModels, taskModel)
-
+		return domain.Task{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("next rows: %w", err)
-	}
+	taskDomain := domain.NewTask(taskModel.ID,
+		taskModel.Version,
+		taskModel.Title,
+		taskModel.Description,
+		taskModel.Completed,
+		taskModel.CreatedAt,
+		taskModel.CompletedAt,
+		taskModel.AuthorUserId)
 
-	taskDomains := TaskDomainsFromModels(tasksModels)
-
-	return taskDomains, nil
+	return taskDomain, nil
 }
