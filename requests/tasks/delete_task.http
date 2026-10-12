@@ -1,0 +1,92 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@task_id = 1
+@unknown_task_id = 999999
+
+# Создай тестовую задачу через create_task.http и подставь её ID в task_id.
+# unknown_task_id должен отсутствовать в БД.
+# Первые четыре запроса запускай по порядку: задача будет удалена.
+# Для повторного прохождения создай новую задачу и обнови task_id.
+# Ожидаемые статусы указаны для текущей реализации при доступной БД.
+
+### Проверить задачу перед удалением — 200
+GET {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Удалить существующую задачу — 204, пустое тело ответа
+DELETE {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Проверить отсутствие удалённой задачи — 404
+GET {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Повторно удалить ту же задачу — 404, JSON с message и error
+DELETE {{api}}/tasks/{{task_id}}
+Accept: application/json
+
+### Удалить несуществующую задачу — 404
+DELETE {{api}}/tasks/{{unknown_task_id}}
+Accept: application/json
+
+### Нулевой ID — 404, если в БД нет задачи с id = 0
+# В текущем сервисе нет валидации положительного ID.
+DELETE {{api}}/tasks/0
+Accept: application/json
+
+### Отрицательный ID — 404, если в БД нет задачи с id = -1
+DELETE {{api}}/tasks/-1
+Accept: application/json
+
+### Буквы вместо ID — 400
+DELETE {{api}}/tasks/abc
+Accept: application/json
+
+### Смешанный ID — 400
+DELETE {{api}}/tasks/12abc
+Accept: application/json
+
+### Дробный ID — 400
+DELETE {{api}}/tasks/1.5
+Accept: application/json
+
+### Экспоненциальная запись ID — 400
+DELETE {{api}}/tasks/1e3
+Accept: application/json
+
+### null вместо ID — 400
+DELETE {{api}}/tasks/null
+Accept: application/json
+
+### Пробел вместо ID — 400
+DELETE {{api}}/tasks/%20
+Accept: application/json
+
+### Переполнение положительного int — 400
+DELETE {{api}}/tasks/999999999999999999999999999999
+Accept: application/json
+
+### Переполнение отрицательного int — 400
+DELETE {{api}}/tasks/-999999999999999999999999999999
+Accept: application/json
+
+### Query-параметр не заменяет ID из пути — 404, существующая task_id не удаляется
+# Выполнять на новой существующей task_id, чтобы проверить, что она сохранена.
+DELETE {{api}}/tasks/{{unknown_task_id}}?taskId={{task_id}}
+Accept: application/json
+
+### Без ID — 405, удаление всей коллекции не поддерживается
+DELETE {{api}}/tasks
+Accept: application/json
+
+### Пустой сегмент ID — 404 от маршрутизатора
+DELETE {{api}}/tasks/
+Accept: application/json
+
+### Лишний сегмент пути — 404 от маршрутизатора
+DELETE {{api}}/tasks/{{task_id}}/extra
+Accept: application/json
+
+### Завершающий слеш после ID — 404 от маршрутизатора
+DELETE {{api}}/tasks/{{task_id}}/
+Accept: application/json
