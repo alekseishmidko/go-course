@@ -1,0 +1,305 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@task_id = 7
+@unknown_task_id = 999999
+
+# Используй тестовую задачу из create_task.http; подставь её ID в task_id.
+# unknown_task_id должен отсутствовать в БД.
+# Статусы ниже — ожидаемое поведение при доступной БД.
+# Успешный PATCH возвращает объект задачи; version увеличивается на 1.
+# Непереданные поля, id, created_at и author_user_id должны сохраняться.
+# После ошибочного PATCH задача должна оставаться доступной и неизменной.
+
+### Обновить только title — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Обновлённая задача"
+}
+
+### Обновить только description — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": "Новое описание задачи"
+}
+
+### Обновить title и description — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Подготовить домашнее задание",
+  "description": "Завершить упражнения по HTTP"
+}
+
+### Завершить задачу — 200, completed = true, completed_at содержит дату
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": true
+}
+
+### Повторно передать completed = true — 200; текущая доменная логика обновляет completed_at
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": true
+}
+
+### Вернуть задачу в работу — 200, completed = false, completed_at = null
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": false
+}
+
+### Обновить все поддерживаемые поля — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Проверить PATCH",
+  "description": "Проверка полного обновления",
+  "completed": true
+}
+
+### Пустой объект — 200, поля сохраняются, version увеличивается
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+### Минимальная длина строк — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Я",
+  "description": "Я"
+}
+
+### Максимальная длина строк: 100 и 1000 символов — 200
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ",
+  "description": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"
+}
+
+### Несуществующая задача — 404
+PATCH {{api}}/tasks/{{unknown_task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Не найдена"
+}
+
+### Нулевой ID — 404, если нет такой записи; положительность ID не валидируется
+PATCH {{api}}/tasks/0
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": false
+}
+
+### Отрицательный ID — 404, если нет такой записи
+PATCH {{api}}/tasks/-1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": false
+}
+
+### Нечисловой ID — 400
+PATCH {{api}}/tasks/abc
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Тест"
+}
+
+### Дробный ID — 400
+PATCH {{api}}/tasks/1.5
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Тест"
+}
+
+### Переполнение int — 400
+PATCH {{api}}/tasks/999999999999999999999999999999
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Тест"
+}
+
+### title = null — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": null
+}
+
+### Пустой title — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": ""
+}
+
+### title длиннее 100 символов — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### description = null — 400 по текущей HTTP-валидации
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": null
+}
+
+### Пустой description — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": ""
+}
+
+### description длиннее 1000 символов — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### completed = null — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": null
+}
+
+### Неверный тип title — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": 123
+}
+
+### Неверный тип description — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": false
+}
+
+### Строка вместо boolean completed — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": "true"
+}
+
+### Число вместо boolean completed — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": 1
+}
+
+### Массив вместо объекта — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+[]
+
+### Неизвестные поля игнорируются — 200; author_user_id не меняется
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Допустимое обновление",
+  "author_user_id": 999999,
+  "unknown_field": "ignored"
+}
+
+### Некорректный JSON — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+{"title": }
+
+### Пустое тело — 400
+PATCH {{api}}/tasks/{{task_id}}
+Content-Type: application/json
+Accept: application/json
+
+### Без ID — 405, PATCH коллекции не поддерживается
+PATCH {{api}}/tasks
+Content-Type: application/json
+Accept: application/json
+
+{"title": "Тест"}
+
+### Лишний сегмент пути — 404 от маршрутизатора
+PATCH {{api}}/tasks/{{task_id}}/extra
+Content-Type: application/json
+Accept: application/json
+
+{"title": "Тест"}
+
+### Проверить сохранённое состояние после PATCH — 200
+GET {{api}}/tasks/{{task_id}}
+Accept: application/json

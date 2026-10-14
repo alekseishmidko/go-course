@@ -20,7 +20,7 @@ func (h *TasksHTTPHandler) GetTask(rw http.ResponseWriter, r *http.Request) {
 		responseHandler.ErrorResponse(err, "failed to get pathValue: taskId")
 		return
 	}
-	taskDomain, err := h.tasksService.GetTask(ctx, &taskId)
+	taskDomain, err := h.tasksService.GetTask(ctx, taskId)
 
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get task")
