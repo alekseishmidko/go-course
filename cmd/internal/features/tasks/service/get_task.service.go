@@ -7,7 +7,7 @@ import (
 	"github.com/alekseishmidko/go-course/cmd/internal/core/domain"
 )
 
-func (s *TasksService) GetTask(ctx context.Context, taskId *int) (domain.Task, error) {
+func (s *TasksService) GetTask(ctx context.Context, taskId int) (domain.Task, error) {
 
 	task, err := s.tasksRepository.GetTask(ctx, taskId)
 

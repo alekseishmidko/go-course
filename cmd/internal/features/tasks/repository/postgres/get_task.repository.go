@@ -10,7 +10,7 @@ import (
 	core_postgres_pool "github.com/alekseishmidko/go-course/cmd/internal/core/repository/postgres/pool"
 )
 
-func (r *TasksRepository) GetTask(ctx context.Context, taskId *int) (domain.Task, error) {
+func (r *TasksRepository) GetTask(ctx context.Context, taskId int) (domain.Task, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -43,14 +43,7 @@ func (r *TasksRepository) GetTask(ctx context.Context, taskId *int) (domain.Task
 		return domain.Task{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	taskDomain := domain.NewTask(taskModel.ID,
-		taskModel.Version,
-		taskModel.Title,
-		taskModel.Description,
-		taskModel.Completed,
-		taskModel.CreatedAt,
-		taskModel.CompletedAt,
-		taskModel.AuthorUserId)
+	taskDomain := TaskDomainFromModel(taskModel)
 
 	return taskDomain, nil
 }
