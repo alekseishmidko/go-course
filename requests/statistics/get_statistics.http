@@ -1,0 +1,143 @@
+@host = http://localhost:5082
+@api = {{host}}/api/v1
+@user_id = 1
+@unknown_user_id = 999999
+@from = 2026-10-01
+@to = 2026-11-01
+
+# Подставь ID автора задач и период их создания. unknown_user_id должен отсутствовать.
+# Даты разбираются как YYYY-MM-DD, полночь UTC. Фильтр применяется к created_at.
+# Обе границы включены: from <= created_at <= to; to не включает весь указанный день.
+# Для всего октября используй to=2026-11-01, учитывая включение полуночи 1 ноября.
+# Имена полей ответа сейчас: TasksCreated, TasksCompleted,
+# TaskCompletedPercent, TaskCompleteAverageTime (строка длительности или null).
+# Нет задач: 0, 0, null, null. Только незавершённые: N, 0, 0, null.
+# Только завершённые: N, N, 100, средняя длительность завершения.
+# Для смешанных данных процент = завершённые / все * 100;
+# среднее считается только по завершённым задачам.
+# Подготовь нужный состав задач через create_task.http и patch_task.http.
+# Ожидаемые 200 ниже описывают корректную работу фильтров при доступной БД.
+
+### Вся статистика — 200
+GET {{api}}/statistics
+Accept: application/json
+
+### По автору — 200
+GET {{api}}/statistics?userId={{user_id}}
+Accept: application/json
+
+### Только нижняя граница — 200
+GET {{api}}/statistics?from={{from}}
+Accept: application/json
+
+### Только верхняя граница — 200
+GET {{api}}/statistics?to={{to}}
+Accept: application/json
+
+### По периоду — 200
+GET {{api}}/statistics?from={{from}}&to={{to}}
+Accept: application/json
+
+### По автору и нижней границе — 200
+GET {{api}}/statistics?userId={{user_id}}&from={{from}}
+Accept: application/json
+
+### По автору и верхней границе — 200
+GET {{api}}/statistics?userId={{user_id}}&to={{to}}
+Accept: application/json
+
+### Все фильтры — 200
+GET {{api}}/statistics?userId={{user_id}}&from={{from}}&to={{to}}
+Accept: application/json
+
+### Неизвестный автор — 200, нулевые счётчики и null для процента и среднего
+GET {{api}}/statistics?userId={{unknown_user_id}}
+Accept: application/json
+
+### Период без задач — 200, пустая статистика, если в БД нет задач за этот период
+GET {{api}}/statistics?from=1900-01-01&to=1900-01-02
+Accept: application/json
+
+### Нулевой userId — 200, пустая статистика, если такого автора нет
+GET {{api}}/statistics?userId=0
+Accept: application/json
+
+### Отрицательный userId — 200, пустая статистика, если такого автора нет
+GET {{api}}/statistics?userId=-1
+Accept: application/json
+
+### Пустые параметры считаются отсутствующими — 200
+GET {{api}}/statistics?userId=&from=&to=
+Accept: application/json
+
+### Корректная дата високосного года — 200
+GET {{api}}/statistics?from=2024-02-29&to=2024-03-01
+Accept: application/json
+
+### Одинаковые границы — 400
+GET {{api}}/statistics?from=2026-10-01&to=2026-10-01
+Accept: application/json
+
+### Верхняя граница раньше нижней — 400
+GET {{api}}/statistics?from=2026-11-01&to=2026-10-01
+Accept: application/json
+
+### Буквы в userId — 400
+GET {{api}}/statistics?userId=abc
+Accept: application/json
+
+### Дробный userId — 400
+GET {{api}}/statistics?userId=1.5
+Accept: application/json
+
+### Переполнение userId — 400
+GET {{api}}/statistics?userId=999999999999999999999999999999
+Accept: application/json
+
+### Некорректный from — 400
+GET {{api}}/statistics?from=abc
+Accept: application/json
+
+### Некорректный to — 400
+GET {{api}}/statistics?to=abc
+Accept: application/json
+
+### Неверный порядок компонентов даты — 400
+GET {{api}}/statistics?from=27-10-2026
+Accept: application/json
+
+### Timestamp вместо даты — 400
+GET {{api}}/statistics?to=2026-10-27T12:00:00Z
+Accept: application/json
+
+### Несуществующий день месяца — 400
+GET {{api}}/statistics?from=2026-04-31
+Accept: application/json
+
+### 29 февраля невисокосного года — 400
+GET {{api}}/statistics?to=2026-02-29
+Accept: application/json
+
+### Несуществующий месяц — 400
+GET {{api}}/statistics?from=2026-13-01
+Accept: application/json
+
+### null вместо даты — 400
+GET {{api}}/statistics?to=null
+Accept: application/json
+
+### Неизвестные query-параметры игнорируются — 200, общая статистика
+GET {{api}}/statistics?limit=0&offset=10&unknown=value
+Accept: application/json
+
+### HEAD — 200, без тела ответа
+HEAD {{api}}/statistics
+Accept: application/json
+
+### POST не поддерживается — 405
+POST {{api}}/statistics
+Accept: application/json
+
+### Завершающий слеш — 404 от маршрутизатора
+GET {{api}}/statistics/
+Accept: application/json

@@ -76,3 +76,14 @@ env-port-forward:
 
 env-port-forward-down:
 	@${COMPOSE} down port-forwarder
+
+.PHONY: logs-cleanup
+logs-cleanup:
+	@printf 'Очистить логи в out/logs? [y/N]: '; \
+	read -r ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf "$(PROJECT_ROOT)/out/logs" && \
+		echo "Логи удалены"; \
+	else \
+		echo "Очистка отменена"; \
+	fi
