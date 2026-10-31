@@ -1,3 +1,7 @@
+.PHONY: deploy
+deploy:
+	$(COMPOSE) up -d --build todoapp
+
 include .env
 export
 
