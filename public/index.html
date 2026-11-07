@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Дело — задачи и люди</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/"
+        >д<span>е</span>ло<span class="brand-dot">.</span></a
+      >
+      <div class="workspace">ЛИЧНОЕ ПРОСТРАНСТВО</div>
+      <nav aria-label="Разделы">
+        <button class="nav active" data-view="tasks">
+          ▦ <span>Задачи</span
+          ><span id="nav-count" class="badge">0</span></button
+        ><button class="nav" data-view="users">
+          ♧ <span>Пользователи</span></button
+        ><button class="nav" data-view="statistics">
+          ◷ <span>Статистика</span>
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span> TodoApp API
+        <a href="/swagger/index.html" target="_blank" rel="noopener"
+          >Документация ↗</a
+        >
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div class="breadcrumb">
+          Рабочее пространство <span>/</span> <b id="crumb">Задачи</b>
+        </div>
+        <span class="today" id="today"></span>
+      </header>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <section id="tasks-view" class="view">
+        <div class="heading">
+          <div>
+            <p class="eyebrow">МЕНЬШЕ СУЕТЫ. БОЛЬШЕ ДЕЛА.</p>
+            <h1>Всё под контролем<span>.</span></h1>
+            <p class="subtitle">Освободи голову — оставь задачи здесь.</p>
+          </div>
+          <button class="primary" id="new-task">＋ Новая задача</button>
+        </div>
+        <div class="metrics">
+          <article>
+            <span>Всего задач</span><strong id="total">—</strong
+            ><small>в выбранном пространстве</small>
+          </article>
+          <article>
+            <span>В работе</span><strong id="pending">—</strong
+            ><small><i class="dot orange"></i> Ждут твоего внимания</small>
+          </article>
+          <article>
+            <span>Завершено</span><strong id="done">—</strong
+            ><small><i class="dot green"></i> Ещё один шаг вперёд</small>
+          </article>
+          <article class="progress-card">
+            <span>Твой прогресс</span><strong id="progress-value">—</strong>
+            <div class="progress"><div id="progress-bar"></div></div>
+          </article>
+        </div>
+        <div class="panel">
+          <div class="toolbar">
+            <div class="tabs" role="group" aria-label="Статус задач">
+              <button class="selected" data-filter="all">Все задачи</button
+              ><button data-filter="pending">В работе</button
+              ><button data-filter="done">Завершённые</button>
+            </div>
+            <div class="tools">
+              <input
+                id="search"
+                type="search"
+                placeholder="Поиск задач…"
+                aria-label="Поиск задач"
+              /><select id="author-filter" aria-label="Автор задач">
+                <option value="">Все авторы</option>
+              </select>
+            </div>
+          </div>
+          <div class="list-heading">
+            <span>ЗАДАЧА</span><span>АВТОР / СОЗДАНА</span>
+          </div>
+          <div id="task-list" aria-live="polite"></div>
+          <div class="panel-footer">
+            <span id="task-count"></span
+            ><button class="text-button" id="refresh">Обновить ↻</button>
+          </div>
+        </div>
+        <p class="footnote">
+          Маленькие шаги складываются в большие результаты.
+        </p>
+      </section>
+      <section id="users-view" class="view" hidden>
+        <div class="heading">
+          <div>
+            <p class="eyebrow">ЛЮДИ ЗА ЗАДАЧАМИ</p>
+            <h1>Пользователи<span>.</span></h1>
+            <p class="subtitle">У каждого дела есть автор.</p>
+          </div>
+          <button class="primary" id="new-user">
+            ＋ Добавить пользователя
+          </button>
+        </div>
+        <div id="user-list" class="user-grid"></div>
+      </section>
+      <section id="statistics-view" class="view" hidden>
+        <div class="heading">
+          <div>
+            <p class="eyebrow">ВЗГЛЯД НА РЕЗУЛЬТАТ</p>
+            <h1>Статистика<span>.</span></h1>
+            <p class="subtitle">Посмотри, сколько уже сделано.</p>
+          </div>
+        </div>
+        <form id="stats-form" class="panel stats-filters">
+          <label
+            >Автор<select id="stats-author">
+              <option value="">Все авторы</option>
+            </select></label
+          ><label>С даты<input id="stats-from" type="date" /></label
+          ><label>До даты<input id="stats-to" type="date" /></label
+          ><button class="primary">Показать</button>
+        </form>
+        <p class="hint">
+          Границы периода включены. «До даты» означает начало указанного дня,
+          00:00 UTC.
+        </p>
+        <div id="stats-result" class="metrics" aria-live="polite"></div>
+      </section>
+    </main>
+    <dialog id="editor">
+      <form id="editor-form">
+        <div class="dialog-heading">
+          <h2 id="editor-title"></h2>
+          <button
+            type="button"
+            class="icon-button"
+            id="close-editor"
+            aria-label="Закрыть"
+          >
+            ✕
+          </button>
+        </div>
+        <div id="editor-fields"></div>
+        <p id="form-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" id="cancel-editor">
+            Отмена</button
+          ><button class="primary" id="save">Сохранить</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="confirm-dialog">
+      <form method="dialog">
+        <h2>Удалить запись?</h2>
+        <p>Это действие нельзя отменить.</p>
+        <div class="dialog-actions">
+          <button class="secondary" value="cancel">Отмена</button
+          ><button class="danger" value="delete">Удалить</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

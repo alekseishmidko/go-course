@@ -26,6 +26,7 @@ WORKDIR /app
 
 # Забираем из builder только готовый бинарник: он окажется в /app/exe.
 COPY --from=builder /app/cmd/todoapp/exe /app
+COPY --from=builder /app/public /app/public
 
 # При старте контейнера запускаем приложение напрямую, без оболочки.
 CMD ["/app/exe"]
