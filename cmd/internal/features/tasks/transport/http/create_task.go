@@ -10,13 +10,23 @@ import (
 )
 
 type CreateTaskRequest struct {
-	Title        string  `json:"title" validate:"required,min=1,max=100"`
-	Description  *string `json:"description" validate:"omitempty,min=1,max=1000"`
-	AuthorUserId int     `json:"author_user_id" validate:"required"`
+	Title        string  `json:"title" example:"Изучить Go" minLength:"1" maxLength:"100" validate:"required,min=1,max=100"`
+	Description  *string `json:"description" example:"Прочитать раздел о HTTP" minLength:"1" maxLength:"1000" extensions:"x-nullable" validate:"omitempty,min=1,max=1000"`
+	AuthorUserId int     `json:"author_user_id" example:"1" validate:"required"`
 }
 
 type CreateTaskResponse TaskDtoResponse
 
+// CreateTask godoc
+// @Summary Создать задачу
+// @Tags tasks
+// @Produce json
+// @Accept json
+// @Param request body CreateTaskRequest true "Поля новой записи"
+// @Success 201 {object} CreateTaskResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /tasks [post]
 func (h *TasksHTTPHandler) CreateTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

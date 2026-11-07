@@ -22,6 +22,15 @@ run: wait-db
 fmt:
 	gofmt -w .
 
+.PHONY: swagger-gen
+swagger-gen:
+	@$(COMPOSE) run --rm todoapp-swagger \
+		init \
+		-g cmd/todoapp/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
+
 env-up:
 	$(COMPOSE) up -d todoapp-postgres port-forwarder
 

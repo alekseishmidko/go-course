@@ -10,6 +10,16 @@ import (
 
 type GetTaskResponse TaskDtoResponse
 
+// GetTask godoc
+// @Summary Получить задачу
+// @Tags tasks
+// @Produce json
+// @Param taskId path int true "ID задачи"
+// @Success 200 {object} GetTaskResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 404 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /tasks/{taskId} [get]
 func (h *TasksHTTPHandler) GetTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

@@ -10,12 +10,22 @@ import (
 )
 
 type CreateUserRequest struct {
-	FullName    string  `json:"full_name" validate:"required,min=3,max=100"`
-	PhoneNumber *string `json:"phone_number" validate:"omitempty,min=10,max=15,startswith=+"`
+	FullName    string  `json:"full_name" example:"Алексей Иванов" minLength:"3" maxLength:"100" validate:"required,min=3,max=100"`
+	PhoneNumber *string `json:"phone_number" example:"+79997654321" minLength:"10" maxLength:"15" extensions:"x-nullable" validate:"omitempty,min=10,max=15,startswith=+"`
 }
 
 type CreateUserResponse UserDtoResponse
 
+// CreateUser godoc
+// @Summary Создать пользователя
+// @Tags users
+// @Produce json
+// @Accept json
+// @Param request body CreateUserRequest true "Поля новой записи"
+// @Success 201 {object} CreateUserResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /users [post]
 func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

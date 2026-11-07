@@ -12,9 +12,9 @@ import (
 )
 
 type PatchRequestDto struct {
-	Title       core_http_types.Nullable[string] `json:"title"`
-	Description core_http_types.Nullable[string] `json:"description"`
-	Completed   core_http_types.Nullable[bool]   `json:"completed"`
+	Title       core_http_types.Nullable[string] `json:"title" example:"Изучить Go" minLength:"1" maxLength:"100" swaggertype:"string"`
+	Description core_http_types.Nullable[string] `json:"description" example:"Прочитать раздел о HTTP" minLength:"1" maxLength:"1000" swaggertype:"string"`
+	Completed   core_http_types.Nullable[bool]   `json:"completed" example:"true" swaggertype:"boolean"`
 }
 
 type PatchTaskResponse TaskDtoResponse
@@ -49,6 +49,21 @@ func (r *PatchRequestDto) Validate() error {
 
 	return nil
 }
+
+// PatchTask godoc
+// @Summary Обновить задачу
+// @Tags tasks
+// @Produce json
+// @Param taskId path int true "ID задачи"
+// @Accept json
+// @Param request body PatchRequestDto true "Поля для обновления; непереданные поля сохраняются"
+// @Description Пустой объект допустим. null запрещён для title, description и completed. completed обновляет completed_at автоматически.
+// @Success 200 {object} PatchTaskResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 404 {object} core_http_response.ErrorResponse
+// @Failure 409 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /tasks/{taskId} [patch]
 func (h *TasksHTTPHandler) PatchTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
