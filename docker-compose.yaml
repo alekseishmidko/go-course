@@ -31,6 +31,29 @@ services:
       - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
     restart: always
 
+  todoapp-swagger:
+    build:
+      context: ${PROJECT_ROOT}
+      # Dockerfile встроен в Compose, поскольку нужен только этому инструменту.
+      dockerfile_inline: |
+        # Alpine уменьшает размер образа; Go нужен для установки CLI swag.
+        # Используем Go 1.25, чтобы инструмент мог работать с модулем проекта.
+        FROM golang:1.25-alpine
+        # Git нужен, если при загрузке Go-модулей потребуется доступ к репозиториям.
+        # --no-cache не сохраняет индекс пакетов в образе.
+        RUN apk add --no-cache git
+        # Фиксируем версию генератора, чтобы она не менялась при каждой сборке.
+        # go install помещает исполняемый файл в /go/bin, который уже есть в PATH.
+        RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6
+        # Отсюда swag будет читать исходники и записывать сгенерированные файлы.
+        WORKDIR /code
+        # Аргументы docker compose run передаются прямо в swag, например init.
+        ENTRYPOINT ["swag"]
+    # Подключаем исходники при запуске: генератор видит актуальный код,
+    # а созданная документация сохраняется в проекте на хосте.
+    volumes:
+      - ${PROJECT_ROOT}:/code
+
   todoapp-postgres-migrations:
     image: migrate/migrate:v4.19.1
     volumes:

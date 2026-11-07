@@ -23,8 +23,25 @@ import (
 	users_service "github.com/alekseishmidko/go-course/cmd/internal/features/users/service"
 	users_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/users/transport/http"
 	"go.uber.org/zap"
+
+	_ "github.com/alekseishmidko/go-course/docs"
 )
 
+// @title TodoApp API
+// @version 1.0
+// @description REST API для управления пользователями и их задачами.
+// @description Поддерживает создание, просмотр, обновление и удаление пользователей и задач, а также получение статистики выполнения задач.
+// @host localhost:5082
+// @BasePath /api/v1
+// @schemes http
+// @accept json
+// @produce json
+// @tag.name users
+// @tag.description Управление пользователями.
+// @tag.name tasks
+// @tag.description Управление задачами пользователей и их состоянием выполнения.
+// @tag.name statistics
+// @tag.description Статистика задач с фильтрацией по автору и периоду создания.
 func main() {
 	config := core_config.NewConfigMust()
 	time.Local = config.Timezone
@@ -76,6 +93,7 @@ func main() {
 		logger, core_http_middlewares.RequestID(),
 		core_http_middlewares.Logger(logger),
 		core_http_middlewares.Trace(),
+		core_http_middlewares.CORS(),
 		core_http_middlewares.Panic())
 
 	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1, []core_http_middlewares.Middleware{})
@@ -88,6 +106,7 @@ func main() {
 	// apiVersionRouterV2.RegisterRoutes(usersTransportHttp.Routes()...)
 
 	httpServer.RegisterAPIRouters(apiVersionRouterV1)
+	httpServer.RegisterSwagger()
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("Http server run Error", zap.Error(err))

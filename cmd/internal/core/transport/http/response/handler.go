@@ -57,29 +57,22 @@ func (h *HTTPResponseHandler) PanicResponse(p any, msg string) {
 	err := fmt.Errorf("unexpected error %s", p)
 
 	h.log.Error(msg, zap.Error(err))
+	response := ErrorResponse{Message: msg, Error: err.Error()}
+
+	h.rw.Header().Set("Content-Type", "application/json")
 	h.rw.WriteHeader(statusCode)
-
-	response := map[string]string{
-		"message": msg,
-		"error":   err.Error(),
-	}
-
 	if err := json.NewEncoder(h.rw).Encode(response); err != nil {
 		h.log.Error("write http response", zap.Error(err))
 		h.errorResponse(statusCode, err, msg)
 	}
 }
 func (h *HTTPResponseHandler) errorResponse(statusCode int, err error, msg string) {
-	h.rw.WriteHeader(statusCode)
-
-	response := map[string]string{
-		"message": msg,
-		"error":   err.Error(),
-	}
+	response := ErrorResponse{Message: msg, Error: err.Error()}
 
 	h.JSONResponse(response, statusCode)
 }
 func (h *HTTPResponseHandler) JSONResponse(responseBody any, statusCode int) {
+	h.rw.Header().Set("Content-Type", "application/json")
 	h.rw.WriteHeader(statusCode)
 	if err := json.NewEncoder(h.rw).Encode(responseBody); err != nil {
 		h.log.Error("write http response", zap.Error(err))

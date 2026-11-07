@@ -8,6 +8,8 @@ import (
 
 	core_logger "github.com/alekseishmidko/go-course/cmd/internal/core/logger"
 	core_http_middleware "github.com/alekseishmidko/go-course/cmd/internal/core/transport/http/middlewares"
+	"github.com/alekseishmidko/go-course/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -89,4 +91,22 @@ func NewConfigMust() Config {
 		panic(err)
 	}
 	return config
+}
+
+func (s *HTTPServer) RegisterSwagger() {
+	s.mux.Handle(
+		"/swagger/",
+		httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"),
+		),
+	)
+
+	s.mux.HandleFunc(
+		"/swagger/doc.json",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(docs.SwaggerInfo.ReadDoc()))
+		},
+	)
 }

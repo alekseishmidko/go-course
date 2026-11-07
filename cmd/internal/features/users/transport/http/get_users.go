@@ -12,6 +12,16 @@ import (
 
 type GetUsersResponse []UserDtoResponse
 
+// GetUsers godoc
+// @Summary Получить список пользователя
+// @Tags users
+// @Produce json
+// @Param limit query int false "Максимальное число записей" minimum(0)
+// @Param offset query int false "Число пропускаемых записей" minimum(0)
+// @Success 200 {array} UserDtoResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /users [get]
 func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

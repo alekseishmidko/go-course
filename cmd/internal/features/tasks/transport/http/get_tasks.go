@@ -11,6 +11,17 @@ import (
 
 type GetTasksResponse []TaskDtoResponse
 
+// GetTasks godoc
+// @Summary Получить список задачу
+// @Tags tasks
+// @Produce json
+// @Param limit query int false "Максимальное число записей" minimum(0)
+// @Param offset query int false "Число пропускаемых записей" minimum(0)
+// @Param userId query int false "ID автора задач"
+// @Success 200 {array} TaskDtoResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /tasks [get]
 func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := core_logger.FromContext(ctx)

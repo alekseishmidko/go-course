@@ -14,10 +14,22 @@ import (
 type GetStatisticsResponse struct {
 	TasksCreated            int      `json:"tasks_created"`
 	TasksCompleted          int      `json:"tasks_completed"`
-	TaskCompletedPercent    *float64 `json:"tasks_completed_percent"`
-	TaskCompleteAverageTime *string  `json:"task_complete_average_time"`
+	TaskCompletedPercent    *float64 `json:"tasks_completed_percent" example:"50" extensions:"x-nullable"`
+	TaskCompleteAverageTime *string  `json:"task_complete_average_time" example:"1h30m0s" extensions:"x-nullable"`
 }
 
+// GetStatistics godoc
+// @Summary Получить статистику задач
+// @Description Фильтры применяются к created_at. Даты задают полночь UTC; обе границы включены, to должен быть позже from. Без задач счётчики равны 0, процент и среднее — null. Среднее считается по завершённым задачам и возвращается строкой длительности Go.
+// @Tags statistics
+// @Produce json
+// @Param userId query int false "ID автора задач"
+// @Param from query string false "Начало периода (YYYY-MM-DD)" format(date) example(2026-10-01)
+// @Param to query string false "Конец периода (YYYY-MM-DD), полночь включительно" format(date) example(2026-11-01)
+// @Success 200 {object} GetStatisticsResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /statistics [get]
 func (h *StatisticHttpHandler) GetStatistics(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

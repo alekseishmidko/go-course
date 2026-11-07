@@ -13,12 +13,26 @@ import (
 )
 
 type PatchUserRequest struct {
-	FullName    core_http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
+	FullName    core_http_types.Nullable[string] `json:"full_name" example:"Алексей Иванов" minLength:"3" maxLength:"100" swaggertype:"string"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number" example:"+79997654321" minLength:"10" maxLength:"15" extensions:"x-nullable" swaggertype:"string"`
 }
 
 type PatchUserResponse UserDtoResponse
 
+// PatchUser godoc
+// @Summary Обновить пользователя
+// @Tags users
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Accept json
+// @Param request body PatchUserRequest true "Поля для обновления; непереданные поля сохраняются"
+// @Description Пустой объект допустим. phone_number: null очищает телефон; full_name: null запрещён.
+// @Success 200 {object} PatchUserResponse
+// @Failure 400 {object} core_http_response.ErrorResponse
+// @Failure 404 {object} core_http_response.ErrorResponse
+// @Failure 409 {object} core_http_response.ErrorResponse
+// @Failure 500 {object} core_http_response.ErrorResponse
+// @Router /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
@@ -50,7 +64,6 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	responseHandler.JSONResponse(response, http.StatusOK)
 	log.Debug(fmt.Sprintf("PatchUserRequest fields: FullName: '%+v'\n PhoneNumber:'%+v'", request.FullName, request.PhoneNumber))
 
-	rw.WriteHeader(http.StatusOK)
 }
 
 func (r *PatchUserRequest) Validate() error {

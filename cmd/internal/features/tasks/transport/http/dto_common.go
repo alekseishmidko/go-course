@@ -11,11 +11,11 @@ type TaskDtoResponse struct {
 	Version int `json:"version"`
 
 	Title       string  `json:"title"`
-	Description *string `json:"description"`
+	Description *string `json:"description" extensions:"x-nullable"`
 	Completed   bool    `json:"completed"`
 
-	CreatedAt   time.Time  `json:"created_at"`
-	CompletedAt *time.Time `json:"completed_at"`
+	CreatedAt   time.Time  `json:"created_at" format:"date-time"`
+	CompletedAt *time.Time `json:"completed_at" format:"date-time" extensions:"x-nullable"`
 
 	AuthorUserId int `json:"author_user_id"`
 }
