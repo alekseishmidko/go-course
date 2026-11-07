@@ -22,6 +22,9 @@ import (
 	users_postgres_repository "github.com/alekseishmidko/go-course/cmd/internal/features/users/repository/postgres"
 	users_service "github.com/alekseishmidko/go-course/cmd/internal/features/users/service"
 	users_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/users/transport/http"
+	web_fs_repository "github.com/alekseishmidko/go-course/cmd/internal/features/web/repository/fs"
+	web_service "github.com/alekseishmidko/go-course/cmd/internal/features/web/service"
+	web_transport_http "github.com/alekseishmidko/go-course/cmd/internal/features/web/transport/http"
 	"go.uber.org/zap"
 
 	_ "github.com/alekseishmidko/go-course/docs"
@@ -86,7 +89,13 @@ func main() {
 	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
 	statisticsTransportHttp := statistics_transport_http.NewStatisticHttpHandler(statisticsService)
-	//
+
+	// WEB
+	logger.Debug("initialize feature:", zap.String("feature", "web"))
+	webRepository := web_fs_repository.NewWebRepository("public")
+	webService := web_service.NewWebService(webRepository)
+	webTransportHttp := web_transport_http.NewWebHTTPHandler(webService)
+
 	logger.Debug("Initializing https server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -107,6 +116,7 @@ func main() {
 
 	httpServer.RegisterAPIRouters(apiVersionRouterV1)
 	httpServer.RegisterSwagger()
+	httpServer.RegisterRoutes(webTransportHttp.Routes()...)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("Http server run Error", zap.Error(err))

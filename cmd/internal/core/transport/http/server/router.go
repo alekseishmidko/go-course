@@ -51,3 +51,14 @@ func (r *APIVersionRouter) RegisterRoutes(routes ...Route) {
 func (r *APIVersionRouter) WithMiddleware() http.Handler {
 	return core_http_middlewares.ChainMiddleware(r, r.middleware...)
 }
+
+// RegisterRoutes registers routes outside the versioned API, such as web pages.
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		pattern := route.Path
+		if route.Method != "" {
+			pattern = route.Method + " " + pattern
+		}
+		s.mux.Handle(pattern, route.WithMiddleware())
+	}
+}
